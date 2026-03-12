@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(openclaw:*)",
+      "Bash(ls:*)",
+      "Bash(grep:*)",
+      "Bash(chmod:*)",
+      "Bash(curl:*)",
+      "Bash(head:*)",
+      "Bash(python3:*)",
+      "Bash(docker:*)",
+      "Bash(git:*)",
+      "Bash(gh:*)",
+      "Bash(npm:*)",
+      "Bash(brew:*)",
+      "Bash(mkdir:*)",
+      "Bash(claude mcp:*)",
+      "Bash(crontab:*)",
+      "WebFetch(domain:docs.openclaw.ai)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebFetch(domain:posthog.com)",
+      "WebFetch(domain:www.npmjs.com)"
+    ]
+  }
+}

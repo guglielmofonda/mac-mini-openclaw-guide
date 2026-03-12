@@ -1,0 +1,154 @@
+{
+  "meta": {
+    "lastTouchedVersion": "2026.1.30"
+  },
+  "browser": {
+    "defaultProfile": "openclaw"
+  },
+  "auth": {
+    "profiles": {
+      "anthropic:default": {
+        "provider": "anthropic",
+        "mode": "api_key"
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "workspace": "/Users/YOUR_USERNAME/clawd",
+      "contextPruning": {
+        "mode": "cache-ttl",
+        "ttl": "1h"
+      },
+      "compaction": {
+        "mode": "safeguard"
+      },
+      "heartbeat": {
+        "every": "10m"
+      },
+      "maxConcurrent": 4,
+      "subagents": {
+        "maxConcurrent": 8
+      }
+    }
+  },
+  "tools": {
+    "web": {
+      "search": {
+        "enabled": true,
+        "apiKey": "YOUR_WEB_SEARCH_API_KEY"
+      },
+      "fetch": {
+        "enabled": true
+      }
+    }
+  },
+  "messages": {
+    "ackReaction": "👀",
+    "ackReactionScope": "all",
+    "removeAckAfterReply": true
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "restart": true
+  },
+  "hooks": {
+    "internal": {
+      "enabled": true,
+      "entries": {
+        "session-memory": {
+          "enabled": true
+        },
+        "boot-md": {
+          "enabled": true
+        },
+        "command-logger": {
+          "enabled": true
+        },
+        "slack-mention-notify": {
+          "enabled": true
+        }
+      }
+    }
+  },
+  "channels": {
+    "slack": {
+      "mode": "socket",
+      "webhookPath": "/slack/events",
+      "botToken": "xoxb-YOUR-SLACK-BOT-TOKEN",
+      "appToken": "xapp-YOUR-SLACK-APP-TOKEN",
+      "userTokenReadOnly": true,
+      "groupPolicy": "open",
+      "actions": {
+        "reactions": true
+      },
+      "dm": {
+        "policy": "allowlist",
+        "allowFrom": ["YOUR_SLACK_USER_ID"]
+      },
+      "channels": {
+        "#your-agent-channel": {
+          "allow": true,
+          "requireMention": false
+        }
+      }
+    },
+    "telegram": {
+      "dmPolicy": "allowlist",
+      "botToken": "YOUR_TELEGRAM_BOT_TOKEN",
+      "allowFrom": [
+        "your_telegram_username",
+        "your_numeric_user_id"
+      ],
+      "groupPolicy": "allowlist",
+      "streamMode": "partial"
+    },
+    "whatsapp": {
+      "dmPolicy": "allowlist",
+      "selfChatMode": true,
+      "allowFrom": ["+1YOUR_PHONE_NUMBER"],
+      "groupPolicy": "allowlist",
+      "mediaMaxMb": 50,
+      "ackReaction": {
+        "emoji": "👀",
+        "direct": true,
+        "group": "always"
+      },
+      "debounceMs": 0
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "loopback",
+    "auth": {
+      "mode": "token",
+      "token": "GENERATE_WITH_openssl_rand_-hex_24"
+    },
+    "tailscale": {
+      "mode": "off"
+    }
+  },
+  "skills": {
+    "load": {
+      "extraDirs": ["/Users/YOUR_USERNAME/clawd/skills"]
+    },
+    "install": {
+      "nodeManager": "npm"
+    }
+  },
+  "plugins": {
+    "entries": {
+      "whatsapp": {
+        "enabled": true
+      },
+      "telegram": {
+        "enabled": true
+      },
+      "slack": {
+        "enabled": true
+      }
+    }
+  }
+}
