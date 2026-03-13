@@ -996,6 +996,125 @@ Never commit these to your workspace repo:
 | **Google OAuth expires ~7 days** | Gmail/Calendar API fails | Browser automation re-auth or publish your Google app | Active workaround |
 | **Health watchdog can't find Node** | False restart loops | Use full path `/opt/homebrew/bin/openclaw` in scripts | Easy fix |
 | **WhatsApp connection drops** | 408/503 errors | Gateway auto-reconnects; monitor logs | Intermittent |
+| **Slack thread sessions lack context** | Agent responds confused in threads | Fetch thread context via API before responding | Open (GH #44638) |
+| **Slack `message read threadId` broken** | Can't read thread replies | Use direct Slack API call | Open (GH #44591) |
+
+### Slack Thread Context Workaround
+
+When someone replies in a Slack thread, OpenClaw creates a **new session** for that thread. This session starts **blank** — the agent has no context of the parent message or prior thread replies.
+
+**Symptom:** Agent responds to thread asking "what are you referring to?" even though the context is in the thread above.
+
+**Root cause:** Thread sessions don't bootstrap with thread history. Filed as [#44638](https://github.com/openclaw/openclaw/issues/44638).
+
+**Workaround script** (`~/clawd/scripts/slack-thread-context.sh`):
+
+```bash
+#!/bin/bash
+# Fetch Slack thread context using conversations.replies API
+# Usage: slack-thread-context.sh <channel_id> <thread_ts> [limit]
+
+CHANNEL="${1:?Usage: $0 <channel_id> <thread_ts> [limit]}"
+THREAD_TS="${2:?Usage: $0 <channel_id> <thread_ts> [limit]}"
+LIMIT="${3:-20}"
+BOT_TOKEN="xoxb-YOUR-BOT-TOKEN"
+
+curl -s "https://slack.com/api/conversations.replies?channel=${CHANNEL}&ts=${THREAD_TS}&limit=${LIMIT}" \
+  -H "Authorization: Bearer ${BOT_TOKEN}" | \
+  jq -r '.messages[] | "[\(.user)] \(.text[0:500])"'
+```
+
+**Agent behavior update** (add to `AGENTS.md`):
+
+```markdown
+### Thread Context (CRITICAL)
+
+**ALWAYS do this when responding in Slack threads:**
+1. Check if session name contains `thread:TIMESTAMP`
+2. If yes, fetch thread context BEFORE responding:
+   ```bash
+   ~/clawd/scripts/slack-thread-context.sh <channel_id> <thread_ts>
+   ```
+3. Read the context, then respond appropriately
+
+**How to extract channel/thread from session name:**
+- Session: `agent:main:slack:channel:c0al7kz75tp:thread:1773368311.447129`
+- Channel: `C0AL7KZ75TP` (uppercase)
+- Thread ts: `1773368311.447129`
+```
+
+### Slack Channel Message Monitoring
+
+To catch any missed @mentions (safety net):
+
+```bash
+#!/bin/bash
+# ~/clawd/scripts/slack-check-unanswered.sh
+# Check for unanswered @mentions in last 2 hours
+
+BOT_TOKEN="xoxb-YOUR-BOT-TOKEN"
+BOT_USER_ID="U0ACMDPT58X"  # Your bot's user ID
+CHANNELS=("C0AL7KZ75TP" "C0ACMGAQ9PZ")  # Channels to monitor
+OLDEST=$(( $(date +%s) - 7200 ))
+
+for CHANNEL in "${CHANNELS[@]}"; do
+  curl -s "https://slack.com/api/conversations.history?channel=${CHANNEL}&oldest=${OLDEST}&limit=50" \
+    -H "Authorization: Bearer ${BOT_TOKEN}" | \
+    jq -r --arg bot "$BOT_USER_ID" '
+      .messages[]? | 
+      select(.text | contains("<@" + $bot + ">")) |
+      select(.user != $bot) |
+      "Channel: '"$CHANNEL"' | ts: \(.ts) | text: \(.text[0:100])"
+    '
+done
+```
+
+Add to `HEARTBEAT.md` for periodic monitoring:
+
+```markdown
+### Slack Monitoring (every few hours)
+Check for unanswered @mentions:
+\`\`\`bash
+~/clawd/scripts/slack-check-unanswered.sh
+\`\`\`
+If any found, respond to them.
+```
+
+### Slack Config: No Mention Required
+
+To let your agent see all messages (not just @mentions), set `requireMention: false` for each channel:
+
+```json
+{
+  "channels": {
+    "slack": {
+      "channels": {
+        "#your-channel": {
+          "allow": true,
+          "requireMention": false
+        }
+      }
+    }
+  }
+}
+```
+
+**Important:** When `requireMention: false`, your agent sees EVERY message. Add response rules to `AGENTS.md`:
+
+```markdown
+### When to Respond in Channels
+
+**Respond when:**
+- Directly @mentioned
+- Continuing a conversation you're already in
+- Your name comes up naturally
+- You have genuinely useful info to add
+
+**Stay silent (NO_REPLY) when:**
+- General chatter between humans
+- Topics you have nothing to add to
+- Someone else already answered
+```
 
 ---
 
