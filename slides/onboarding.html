@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your AI Teammate — Solo Founders Onboarding</title>
+
+    <!-- === FONTS: Manrope (Electric Studio) === -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===========================================
+           CSS CUSTOM PROPERTIES — Electric Studio theme
+           Dark background, electric blue accent, Manrope font
+           =========================================== */
+        :root {
+            --bg-dark:      #0a0a0a;
+            --bg-panel:     #111111;
+            --bg-blue:      #4361ee;
+            --bg-blue-deep: #2845cc;
+            --accent-blue:  #4361ee;
+            --accent-cyan:  #4cc9f0;
+            --accent-line:  #4361ee;
+            --text-light:   #ffffff;
+            --text-muted:   rgba(255,255,255,0.55);
+            --text-dark:    #0a0a0a;
+            --code-bg:      #0d1117;
+            --code-border:  #4361ee;
+
+            --font-display: 'Manrope', sans-serif;
+            --font-mono:    'JetBrains Mono', monospace;
+
+            /* Typography — clamp() everywhere */
+            --title-size:    clamp(2rem, 5.5vw, 5rem);
+            --h2-size:       clamp(1.4rem, 3.2vw, 2.8rem);
+            --h3-size:       clamp(1rem, 2vw, 1.5rem);
+            --body-size:     clamp(0.8rem, 1.4vw, 1.1rem);
+            --small-size:    clamp(0.65rem, 1vw, 0.85rem);
+            --code-size:     clamp(0.9rem, 1.8vw, 1.4rem);
+            --code-size-lg:  clamp(1rem, 2.2vw, 1.7rem);
+
+            /* Spacing */
+            --slide-padding: clamp(1.5rem, 4vw, 5rem);
+            --content-gap:   clamp(0.6rem, 1.8vw, 2rem);
+            --element-gap:   clamp(0.3rem, 0.8vw, 0.8rem);
+
+            /* Animation */
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --dur:           0.65s;
+        }
+
+        /* ===========================================
+           RESET
+           =========================================== */
+        *, *::before, *::after {
+            margin: 0; padding: 0; box-sizing: border-box;
+        }
+
+        /* ===========================================
+           VIEWPORT BASE — mandatory for scroll-snap
+           =========================================== */
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+            font-family: var(--font-display);
+            background: var(--bg-dark);
+            color: var(--text-light);
+        }
+
+        html {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+            padding: var(--slide-padding);
+        }
+
+        img, .image-container {
+            max-width: 100%;
+            max-height: min(50vh, 400px);
+            object-fit: contain;
+        }
+
+        /* Breakpoints */
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(0.75rem, 3vw, 2.5rem);
+                --content-gap: clamp(0.4rem, 1.2vw, 1rem);
+                --title-size: clamp(1.3rem, 4.5vw, 2.8rem);
+                --h2-size: clamp(1.1rem, 2.8vw, 2rem);
+                --code-size: clamp(0.75rem, 1.5vw, 1.1rem);
+                --code-size-lg: clamp(0.8rem, 1.8vw, 1.3rem);
+            }
+        }
+        @media (max-height: 600px) {
+            :root {
+                --slide-padding: clamp(0.5rem, 2vw, 1.5rem);
+                --content-gap: clamp(0.3rem, 0.8vw, 0.7rem);
+                --title-size: clamp(1rem, 3.8vw, 2rem);
+                --body-size: clamp(0.65rem, 1.1vw, 0.9rem);
+                --code-size: clamp(0.65rem, 1.3vw, 0.95rem);
+            }
+            .nav-dots, .keyboard-hint, .decorative { display: none; }
+        }
+        @media (max-height: 500px) {
+            :root {
+                --slide-padding: clamp(0.4rem, 1.8vw, 1rem);
+                --title-size: clamp(0.9rem, 3vw, 1.5rem);
+                --h2-size: clamp(0.85rem, 2.2vw, 1.2rem);
+                --body-size: clamp(0.6rem, 0.9vw, 0.8rem);
+            }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+            html { scroll-behavior: auto; }
+        }
+
+        /* ===========================================
+           PROGRESS BAR — thin blue stripe at top
+           =========================================== */
+        .progress-bar {
+            position: fixed;
+            top: 0; left: 0;
+            width: 0%; height: 3px;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+            z-index: 1000;
+            transition: width 0.3s ease;
+        }
+
+        /* ===========================================
+           NAV DOTS — right edge
+           =========================================== */
+        .nav-dots {
+            position: fixed;
+            right: clamp(0.6rem, 1.5vw, 1.5rem);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: clamp(5px, 0.8vh, 10px);
+            z-index: 1000;
+        }
+        .nav-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.25);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            padding: 0;
+        }
+        .nav-dot.active {
+            background: var(--accent-blue);
+            transform: scale(1.6);
+        }
+        .nav-dot:hover { background: rgba(255,255,255,0.6); }
+
+        /* ===========================================
+           SLIDE NUMBER — consistent positioning
+           =========================================== */
+        .slide-num {
+            position: absolute;
+            bottom: clamp(1rem, 2vw, 2rem);
+            right: clamp(1.5rem, 3vw, 3rem);
+            font-size: var(--small-size);
+            font-weight: 600;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            letter-spacing: 0.05em;
+        }
+
+        /* ===========================================
+           ANIMATIONS — reveal on scroll
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity var(--dur) var(--ease-out-expo),
+                        transform var(--dur) var(--ease-out-expo);
+        }
+        .reveal-left {
+            opacity: 0;
+            transform: translateX(-30px);
+            transition: opacity var(--dur) var(--ease-out-expo),
+                        transform var(--dur) var(--ease-out-expo);
+        }
+        .reveal-scale {
+            opacity: 0;
+            transform: scale(0.92);
+            transition: opacity var(--dur) var(--ease-out-expo),
+                        transform var(--dur) var(--ease-out-expo);
+        }
+        .slide.visible .reveal,
+        .slide.visible .reveal-left,
+        .slide.visible .reveal-scale {
+            opacity: 1;
+            transform: none;
+        }
+        .slide.visible .reveal:nth-child(1) { transition-delay: 0.05s; }
+        .slide.visible .reveal:nth-child(2) { transition-delay: 0.15s; }
+        .slide.visible .reveal:nth-child(3) { transition-delay: 0.25s; }
+        .slide.visible .reveal:nth-child(4) { transition-delay: 0.35s; }
+        .slide.visible .reveal:nth-child(5) { transition-delay: 0.45s; }
+        .stagger-1 { transition-delay: 0.1s !important; }
+        .stagger-2 { transition-delay: 0.2s !important; }
+        .stagger-3 { transition-delay: 0.3s !important; }
+        .stagger-4 { transition-delay: 0.4s !important; }
+        .stagger-5 { transition-delay: 0.5s !important; }
+        .stagger-6 { transition-delay: 0.6s !important; }
+
+        /* ===========================================
+           ELECTRIC STUDIO BASE LAYOUT
+           Dark background with blue accent elements
+           =========================================== */
+
+        /* Accent bar — left edge blue stripe */
+        .accent-bar {
+            position: absolute;
+            left: 0; top: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--accent-blue) 0%, var(--accent-cyan) 100%);
+        }
+
+        /* Section label — small uppercase tag */
+        .section-label {
+            font-size: var(--small-size);
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--accent-cyan);
+            font-family: var(--font-mono);
+            margin-bottom: clamp(0.4rem, 1vh, 0.8rem);
+        }
+
+        /* ===========================================
+           SLIDE 1: TITLE SLIDE
+           Full dark, centered, large display type
+           =========================================== */
+        .slide-title {
+            background: var(--bg-dark);
+            justify-content: center;
+            align-items: flex-start;
+        }
+        .slide-title .accent-bar { background: linear-gradient(180deg, #4361ee 0%, #4cc9f0 100%); }
+        .slide-title .content {
+            padding: var(--slide-padding);
+            padding-left: calc(var(--slide-padding) + 1.5rem);
+        }
+        .title-eyebrow {
+            font-size: var(--small-size);
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--accent-cyan);
+            font-family: var(--font-mono);
+            margin-bottom: clamp(0.5rem, 1.5vh, 1.2rem);
+        }
+        .title-main {
+            font-size: var(--title-size);
+            font-weight: 800;
+            line-height: 1.0;
+            color: var(--text-light);
+            letter-spacing: -0.02em;
+            margin-bottom: clamp(0.6rem, 1.5vh, 1.2rem);
+        }
+        .title-sub {
+            font-size: var(--h3-size);
+            font-weight: 400;
+            color: var(--text-muted);
+            letter-spacing: 0.02em;
+        }
+        .title-date {
+            margin-top: clamp(1.5rem, 3vh, 3rem);
+            font-size: var(--small-size);
+            font-weight: 600;
+            color: var(--text-muted);
+            font-family: var(--font-mono);
+            letter-spacing: 0.08em;
+        }
+        /* Decorative corner element */
+        .title-corner {
+            position: absolute;
+            right: clamp(2rem, 5vw, 6rem);
+            top: 50%;
+            transform: translateY(-50%);
+            width: clamp(80px, 12vw, 160px);
+            height: clamp(80px, 12vw, 160px);
+            border: 2px solid rgba(67,97,238,0.3);
+            border-radius: 50%;
+        }
+        .title-corner::after {
+            content: '';
+            position: absolute;
+            top: 12%; left: 12%;
+            right: 12%; bottom: 12%;
+            border: 1px solid rgba(76,201,240,0.2);
+            border-radius: 50%;
+        }
+
+        /* ===========================================
+           CONTENT SLIDES — standard Electric Studio
+           =========================================== */
+        .slide-content-panel {
+            background: var(--bg-dark);
+            position: relative;
+        }
+        .slide-content-panel .inner {
+            padding: var(--slide-padding);
+            padding-left: calc(var(--slide-padding) + 1.5rem);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .slide-h2 {
+            font-size: var(--h2-size);
+            font-weight: 800;
+            color: var(--text-light);
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+            margin-bottom: clamp(0.5rem, 1.5vh, 1.5rem);
+        }
+        .slide-body {
+            font-size: var(--body-size);
+            color: var(--text-muted);
+            line-height: 1.6;
+            font-weight: 400;
+        }
+        .slide-body strong {
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        /* Bullet-free list */
+        .clean-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.4rem, 1vh, 0.9rem);
+        }
+        .clean-list li {
+            font-size: var(--body-size);
+            color: var(--text-muted);
+            display: flex;
+            align-items: baseline;
+            gap: 0.6em;
+            line-height: 1.4;
+        }
+        .clean-list li::before {
+            content: '—';
+            color: var(--accent-blue);
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+        .clean-list li strong {
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        /* ===========================================
+           CODE BLOCKS — large, readable, prominent
+           =========================================== */
+        .code-block {
+            background: var(--code-bg);
+            border: 1px solid var(--code-border);
+            border-left: 3px solid var(--accent-blue);
+            border-radius: 8px;
+            padding: clamp(0.8rem, 1.5vw, 1.5rem) clamp(1rem, 2vw, 2rem);
+            font-family: var(--font-mono);
+            font-size: var(--code-size);
+            color: var(--accent-cyan);
+            line-height: 1.6;
+            overflow: hidden;
+            position: relative;
+        }
+        .code-block-lg {
+            background: var(--code-bg);
+            border: 1px solid var(--code-border);
+            border-left: 4px solid var(--accent-blue);
+            border-radius: 10px;
+            padding: clamp(1rem, 2vw, 2rem) clamp(1.2rem, 2.5vw, 2.5rem);
+            font-family: var(--font-mono);
+            font-size: var(--code-size-lg);
+            color: #e6edf3;
+            line-height: 1.7;
+            overflow: hidden;
+        }
+        .code-block-lg .cmd {
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+        .code-block-lg .comment {
+            color: rgba(255,255,255,0.35);
+            font-size: 0.85em;
+        }
+        .code-label {
+            font-size: var(--small-size);
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--accent-blue);
+            font-family: var(--font-mono);
+            margin-bottom: clamp(0.3rem, 0.8vh, 0.6rem);
+        }
+
+        /* ===========================================
+           SPLIT LAYOUT — 60/40 content + accent panel
+           =========================================== */
+        .slide-split {
+            display: flex;
+            flex-direction: row;
+            background: var(--bg-dark);
+        }
+        .split-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: var(--slide-padding);
+            padding-left: calc(var(--slide-padding) + 1.5rem);
+            position: relative;
+        }
+        .split-aside {
+            width: clamp(180px, 28vw, 360px);
+            background: linear-gradient(160deg, var(--bg-blue) 0%, var(--bg-blue-deep) 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: clamp(1rem, 2.5vw, 3rem);
+            gap: clamp(0.6rem, 1.5vh, 1.2rem);
+            position: relative;
+            overflow: hidden;
+        }
+        .split-aside::before {
+            content: '';
+            position: absolute;
+            top: -40%;
+            left: -40%;
+            width: 180%;
+            height: 180%;
+            background: radial-gradient(ellipse at center, rgba(76,201,240,0.12) 0%, transparent 60%);
+        }
+        .aside-item {
+            width: 100%;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: clamp(0.5rem, 1vh, 0.9rem) clamp(0.8rem, 1.5vw, 1.2rem);
+            font-size: var(--body-size);
+            font-weight: 600;
+            color: rgba(255,255,255,0.9);
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        .aside-item.highlight {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+        }
+
+        /* ===========================================
+           GRID LAYOUT — for features/capabilities
+           =========================================== */
+        .slide-grid {
+            background: var(--bg-dark);
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: clamp(0.5rem, 1.2vw, 1rem);
+            margin-top: clamp(0.5rem, 1.5vh, 1.5rem);
+        }
+        @media (max-width: 700px) {
+            .feature-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        .feature-card {
+            background: var(--bg-panel);
+            border: 1px solid rgba(67,97,238,0.2);
+            border-radius: 10px;
+            padding: clamp(0.6rem, 1.2vw, 1.2rem);
+            position: relative;
+            overflow: hidden;
+        }
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            height: 2px; width: 100%;
+            background: linear-gradient(90deg, var(--accent-blue), transparent);
+        }
+        .feature-card .fc-label {
+            font-size: var(--small-size);
+            font-weight: 700;
+            color: var(--text-light);
+            letter-spacing: 0.03em;
+        }
+        .feature-card .fc-sub {
+            font-size: calc(var(--small-size) * 0.9);
+            color: var(--text-muted);
+            margin-top: 2px;
+            line-height: 1.3;
+        }
+
+        /* ===========================================
+           SCOPE LIST — slide 9, Slack scopes
+           =========================================== */
+        .scope-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: clamp(0.25rem, 0.6vh, 0.5rem);
+            margin-top: clamp(0.5rem, 1.2vh, 1rem);
+        }
+        .scope-tag {
+            background: var(--code-bg);
+            border: 1px solid rgba(67,97,238,0.35);
+            border-radius: 5px;
+            padding: clamp(0.25rem, 0.5vh, 0.4rem) clamp(0.5rem, 1vw, 0.8rem);
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            color: var(--accent-cyan);
+            font-weight: 500;
+        }
+
+        /* ===========================================
+           WHAT'S NEXT SLIDE — 4-item roadmap
+           =========================================== */
+        .roadmap-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: clamp(0.5rem, 1.2vw, 1rem);
+            margin-top: clamp(0.5rem, 1.5vh, 1.5rem);
+        }
+        .roadmap-item {
+            background: var(--bg-panel);
+            border: 1px solid rgba(67,97,238,0.2);
+            border-radius: 10px;
+            padding: clamp(0.7rem, 1.5vw, 1.5rem);
+            position: relative;
+        }
+        .roadmap-item .ri-num {
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            font-weight: 800;
+            color: rgba(67,97,238,0.25);
+            line-height: 1;
+            font-family: var(--font-mono);
+            margin-bottom: clamp(0.2rem, 0.5vh, 0.4rem);
+        }
+        .roadmap-item .ri-title {
+            font-size: var(--body-size);
+            font-weight: 700;
+            color: var(--text-light);
+        }
+        .roadmap-item .ri-sub {
+            font-size: var(--small-size);
+            color: var(--text-muted);
+            margin-top: 2px;
+            line-height: 1.35;
+        }
+
+        /* ===========================================
+           KEYBOARD HINT
+           =========================================== */
+        .keyboard-hint {
+            position: fixed;
+            bottom: clamp(0.6rem, 1.5vh, 1.2rem);
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: clamp(0.55rem, 0.9vw, 0.75rem);
+            color: rgba(255,255,255,0.2);
+            font-family: var(--font-mono);
+            letter-spacing: 0.08em;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Progress bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Nav dots (populated by JS) -->
+    <nav class="nav-dots" id="navDots" aria-label="Slide navigation"></nav>
+
+    <!-- Keyboard hint -->
+    <div class="keyboard-hint">↑ ↓ space · swipe to navigate</div>
+
+    <!-- ===========================================
+         SLIDE 1: TITLE
+         =========================================== -->
+    <section class="slide slide-title" id="slide-1" aria-label="Title slide">
+        <div class="accent-bar"></div>
+        <div class="content" style="padding: var(--slide-padding); padding-left: calc(var(--slide-padding) + 1.5rem); height:100%; display:flex; flex-direction:column; justify-content:center;">
+            <div class="title-eyebrow reveal">Solo Founders</div>
+            <h1 class="title-main reveal">Your AI<br>Teammate</h1>
+            <p class="title-sub reveal">Setting up your personal agent — together</p>
+            <div class="title-date reveal">March 2026</div>
+        </div>
+        <div class="title-corner decorative"></div>
+        <div class="slide-num">01 / 14</div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 2: WHAT WE'RE BUILDING
+         =========================================== -->
+    <section class="slide slide-content-panel" id="slide-2" aria-label="What we're building">
+        <div class="accent-bar"></div>
+        <div class="inner">
+            <div class="section-label reveal">Overview</div>
+            <h2 class="slide-h2 reveal">What We're Building</h2>
+            <ul class="clean-list" style="margin-top: clamp(0.5rem,1.5vh,1.5rem);">
+                <li class="reveal stagger-1"><strong>Lives on your Mac</strong> — always on, always ready</li>
+                <li class="reveal stagger-2"><strong>Talks to you on Slack + Telegram</strong> — natural language, no dashboards</li>
+                <li class="reveal stagger-3"><strong>Works while you sleep</strong> — scheduled tasks, autonomous cycles</li>
+            </ul>
+        </div>
+        <div class="slide-num">02 / 14</div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 3: WHAT YOU NEED
+         =========================================== -->
+    <section class="slide slide-split" id="slide-3" aria-label="Requirements">
+        <div class="accent-bar"></div>
+        <div class="split-main">
+            <div class="section-label reveal">Prerequisites</div>
+            <h2 class="slide-h2 reveal">What You Need</h2>
+            <p class="slide-body reveal" style="margin-top: clamp(0.3rem,0.8vh,0.6rem);">Four things. That's it.</p>
+        </div>
+        <div class="split-aside">
+            <div class="aside-item reveal stagger-1">Mac (Apple Silicon)</div>
+            <div class="aside-item reveal stagger-2">Terminal</div>
+            <div class="aside-item highlight reveal stagger-3">Anthropic API key</div>
+            <div class="aside-item reveal stagger-4">Slack workspace access</div>
+        </div>
+        <div class="slide-num">03 / 14</div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 4: STEP 1 — INSTALL CLAUDE CODE
+         =========================================== -->
+    <section class="slide slide-content-panel" id="slide-4" aria-label="Step 1: Install Claude Code">
+        <div class="accent-bar"></div>
+        <div class="inner">
+            <div class="section-label reveal">Step 01</div>
+            <h2 class="slide-h2 reveal">Install Claude Code</h2>
+            <div style="margin-top: clamp(0.8rem,2vh,2rem); display:flex; flex-direction:column; gap: clamp(0.5rem,1.2vh,1rem);">
+                <div class="code-label reveal">install</div>
+                <div class="code-block-lg reveal">
+                    <span class="cmd">npm install -g @anthropic-ai/claude-code</span>
+                </div>
+                <div class="code-label reveal">verify</div>
+                <div class="code-block-lg reveal">
+                    <span class="cmd">claude --version</span>
+                </div>
+            </div>
+        </div>
+        <div class="slide-num">04 / 14</div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 5: STEP 2 — INSTALL OPENCLAW
+         =========================================== -->
+    <section class="slide slide-content-panel" id="slide-5" aria-label="Step 2: Install OpenClaw">
+        <div class="accent-bar"></div>
+        <div class="inner">
+            <div class="section-label reveal">Step 02</div>
+            <h2 class="slide-h2 reveal">Install OpenClaw</h2>
+            <div style="margin-top: clamp(0.8rem,2vh,2rem); display:flex; flex-direction:column; gap: clamp(0.5rem,1.2vh,1rem);">
+                <div class="code-label reveal">install</div>
+                <div class="code-block-lg reveal">
+                    <span class="cmd">npm install -g openclaw</span>
+                </div>
+                <div class="code-label reveal">verify</div>
+                <div class="code-block-lg reveal">
+                    <span class="cmd">openclaw --version</span>
+                </div>
+            </div>
+        </div>
+        <div class="slide-num">05 / 14</div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 6: STEP 3 — RUN THE WIZARD
+         =========================================== -->
+    <section class="slide slide-split" id="slide-6" aria-label="Step 3: Run the wizard">
+        <div class="accent-bar"></div>
+        <div class="split-main">
+            <div class="section-label reveal">Step 03</div>
+            <h2 class="slide-h2 reveal">Run the Wizard</h2>
+            <div style="margin-top: clamp(0.8rem,2vh,1.8rem);">
+                <div class="code-block-lg reveal">
+                    <span class="cmd">openclaw onboard --install-daemon</span>
+                </div>
+            </div>
+        </div>
+        <div class="split-aside">
+            <div style="font-size: var(--small-size); font-weight:700; color:rgba(255,255,255,0.5); letter-spacing:0.12em; text-transform:uppercase; font-family:var(--font-mono); margin-bottom:0.5rem; position:relative; z-index:1;" class="reveal">It will ask for</div>
+            <div class="aside-item reveal stagger-1">API key</div>
+            <div class="aside-item reveal stagger-2">Gateway port</div>
+            <div class="aside-item reveal stagger-3">Channels</div>
+            <div class="aside-item highlight reveal stagger-4">Skills</div>
+        </div>
+        <div class="slide-num">06 / 14</div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 7: STEP 4 — MEET YOUR CLAW
+         =========================================== -->
+    <section class="slide slide-content-panel" id="slide-7" aria-label="Step 4: Meet your Claw">
+        <div class="accent-bar"></div>
+        <div class="inner">
+            <div class="section-label reveal">Step 04</div>
+            <h2 class="slide-h2 reveal">Meet Your Claw</h2>
+            <ul class="clean-list" style="margin-top: clamp(0.6rem,1.5vh,1.5rem);">
+                <li class="reveal stagger-1">First boot runs <strong>BOOTSTRAP.md</strong></li>
+                <li class="reveal stagger-2">Have a conversation — pick a <strong>name, personality, emoji</strong></li>
+                <li class="reveal stagger-3">Your agent <strong>remembers everything</strong> from day one</li>
+            </ul>
+        </div>
+        <div class="slide-num">07 / 14</div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 8: STEP 5 — CONNECT TELEGRAM
+         =========================================== -->
+    <section class="slide slide-split" id="slide-8" aria-label="Step 5: Connect Telegram">
+        <div class="accent-bar"></div>
+        <div class="split-main">
+            <div class="section-label reveal">Step 05</div>
+            <h2 class="slide-h2 reveal">Connect Telegram</h2>
+            <div style="margin-top: clamp(0.8rem,2vh,1.8rem);">
+                <div class="code-block-lg reveal">
+                    <span class="cmd">openclaw channels login \<br>&nbsp;&nbsp;--channel telegram</span>
+                </div>
+            </div>
+        </div>
+        <div class="split-aside">
+            <div style="font-size: var(--small-size); font-weight:700; color:rgba(255,255,255,0.5); letter-spacing:0.12em; text-transform:uppercase; font-family:var(--font-mono); margin-bottom:0.5rem; position:relative; z-index:1;" class="reveal">First</div>
+            <div class="aside-item reveal stagger-1">BotFather → /newbot</div>
+            <div class="aside-item highlight reveal stagger-2">Copy the token</div>
+            <div class="aside-item reveal stagger-3">DM your bot to test</div>
+        </div>
+        <div class="slide-num">08 / 14</div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 9: STEP 6 PART 1 — SLACK APP SETUP
+         =========================================== -->
+    <section class="slide slide-split" id="slide-9" aria-label="Step 6 part 1: Slack app setup">
+        <div class="accent-bar"></div>
+        <div class="split-main">
+            <div class="section-label reveal">Step 06 · 1/2</div>
+            <h2 class="slide-h2 reveal">Connect Slack</h2>
+            <ul class="clean-list" style="margin-top: clamp(0.5rem,1.2vh,1rem);">
+                <li class="reveal stagger-1"><strong>api.slack.com/apps</strong> → Create New App</li>
+                <li class="reveal stagger-2">From scratch → <strong>Solo Founders</strong> workspace</li>
+                <li class="reveal stagger-3">Add bot token scopes →</li>
+            </ul>
+        </div>
+        <div class="split-aside" style="padding: clamp(0.8rem,1.5vw,1.5rem);">
+            <div style="font-size: var(--small-size); font-weight:700; color:rgba(255,255,255,0.5); letter-spacing:0.12em; text-transform:uppercase; font-family:var(--font-mono); margin-bottom:0.4rem; position:relative; z-index:1; width:100%;" class="reveal">Bot token scopes</div>
+            <div class="scope-grid reveal" style="width:100%; position:relative; z-index:1;">
+                <div class="scope-tag">channels:history</div>
+                <div class="scope-tag">channels:read</div>
+                <div class="scope-tag">chat:write</div>
+                <div class="scope-tag">files:read</div>
+                <div class="scope-tag">groups:history</div>
+                <div class="scope-tag">groups:read</div>
+                <div class="scope-tag">im:history</div>
+                <div class="scope-tag">im:read</div>
+                <div class="scope-tag">im:write</div>
+                <div class="scope-tag">reactions:write</div>
+                <div class="scope-tag">users:read</div>
+                <div class="scope-tag">users:read.email</div>
+            </div>
+        </div>
+        <div class="slide-num">09 / 14</div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 10: STEP 6 PART 2 — SLACK TOKENS
+         =========================================== -->
+    <section class="slide slide-content-panel" id="slide-10" aria-label="Step 6 part 2: Slack tokens">
+        <div class="accent-bar"></div>
+        <div class="inner">
+            <div class="section-label reveal">Step 06 · 2/2</div>
+            <h2 class="slide-h2 reveal">Connect Slack</h2>
+            <ul class="clean-list" style="margin-top: clamp(0.5rem,1.2vh,1rem);">
+                <li class="reveal stagger-1"><strong>Socket Mode</strong> ON</li>
+                <li class="reveal stagger-2"><strong>Event Subscriptions</strong> ON — app_mention · message.channels · message.groups · message.im</li>
+                <li class="reveal stagger-3">Install to workspace → copy tokens</li>
+            </ul>
+            <div style="margin-top: clamp(0.6rem,1.5vh,1.5rem); display:flex; flex-direction:column; gap: clamp(0.3rem,0.8vh,0.6rem);">
+                <div class="code-block reveal stagger-4" style="color: #a5d6ff;">Bot Token &nbsp;&nbsp;<span style="color: var(--accent-cyan); font-weight:600;">xoxb-...</span></div>
+                <div class="code-block reveal stagger-5" style="color: #a5d6ff;">App Token &nbsp;&nbsp;<span style="color: var(--accent-cyan); font-weight:600;">xapp-...</span></div>
+            </div>
+        </div>
+        <div class="slide-num">10 / 14</div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 11: STEP 7 — TEST
+         =========================================== -->
+    <section class="slide slide-split" id="slide-11" aria-label="Step 7: Test">
+        <div class="accent-bar"></div>
+        <div class="split-main">
+            <div class="section-label reveal">Step 07</div>
+            <h2 class="slide-h2 reveal">Test It</h2>
+            <ul class="clean-list" style="margin-top: clamp(0.6rem,1.5vh,1.5rem);">
+                <li class="reveal stagger-1"><strong>Telegram</strong> — DM your bot</li>
+                <li class="reveal stagger-2"><strong>Slack</strong> — @mention it in a channel</li>
+            </ul>
+        </div>
+        <div class="split-aside">
+            <div style="font-size: clamp(2rem,4vw,3.5rem); position:relative; z-index:1;" class="reveal">✅</div>
+            <div style="font-size: var(--body-size); font-weight:600; color:rgba(255,255,255,0.85); text-align:center; position:relative; z-index:1;" class="reveal stagger-1">reaction first</div>
+            <div style="font-size: var(--body-size); font-weight:400; color:rgba(255,255,255,0.55); text-align:center; position:relative; z-index:1;" class="reveal stagger-2">then a reply</div>
+        </div>
+        <div class="slide-num">11 / 14</div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 12: STEP 8 — JOIN THE TEAM
+         =========================================== -->
+    <section class="slide slide-content-panel" id="slide-12" aria-label="Step 8: Join the team">
+        <div class="accent-bar"></div>
+        <div class="inner">
+            <div class="section-label reveal">Step 08</div>
+            <h2 class="slide-h2 reveal">Join the Team</h2>
+            <div style="margin-top: clamp(0.8rem,2vh,1.8rem);">
+                <div class="code-block-lg reveal">
+                    <span class="cmd">git clone https://github.com/solo-founders/team-agents</span>
+                </div>
+            </div>
+            <ul class="clean-list" style="margin-top: clamp(0.6rem,1.5vh,1.5rem);">
+                <li class="reveal stagger-2">Tell your Claw: <strong>"Follow the README in this folder"</strong></li>
+                <li class="reveal stagger-3">It will learn the team rules and <strong>register itself</strong></li>
+            </ul>
+        </div>
+        <div class="slide-num">12 / 14</div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 13: WHAT YOUR CLAW CAN DO
+         =========================================== -->
+    <section class="slide slide-grid" id="slide-13" aria-label="What your Claw can do">
+        <div class="accent-bar"></div>
+        <div class="inner" style="padding: var(--slide-padding); padding-left: calc(var(--slide-padding) + 1.5rem); height:100%; display:flex; flex-direction:column; justify-content:center;">
+            <div class="section-label reveal">Capabilities</div>
+            <h2 class="slide-h2 reveal">What Your Claw Can Do</h2>
+            <div class="feature-grid">
+                <div class="feature-card reveal stagger-1">
+                    <div class="fc-label">Browse the web</div>
+                    <div class="fc-sub">Research, summarise, monitor</div>
+                </div>
+                <div class="feature-card reveal stagger-2">
+                    <div class="fc-label">Read your calendar</div>
+                    <div class="fc-sub">Schedule, reschedule, remind</div>
+                </div>
+                <div class="feature-card reveal stagger-3">
+                    <div class="fc-label">Search Slack</div>
+                    <div class="fc-sub">Find threads, surface context</div>
+                </div>
+                <div class="feature-card reveal stagger-4">
+                    <div class="fc-label">Run code</div>
+                    <div class="fc-sub">Scripts, data, automation</div>
+                </div>
+                <div class="feature-card reveal stagger-5">
+                    <div class="fc-label">Remember everything</div>
+                    <div class="fc-sub">Persistent memory across sessions</div>
+                </div>
+                <div class="feature-card reveal stagger-6">
+                    <div class="fc-label">Work autonomously</div>
+                    <div class="fc-sub">Scheduled cycles while you sleep</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-num">13 / 14</div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 14: WHAT'S NEXT
+         =========================================== -->
+    <section class="slide slide-grid" id="slide-14" aria-label="What's next">
+        <div class="accent-bar"></div>
+        <div class="inner" style="padding: var(--slide-padding); padding-left: calc(var(--slide-padding) + 1.5rem); height:100%; display:flex; flex-direction:column; justify-content:center;">
+            <div class="section-label reveal">Roadmap</div>
+            <h2 class="slide-h2 reveal">What's Next</h2>
+            <div class="roadmap-grid">
+                <div class="roadmap-item reveal stagger-1">
+                    <div class="ri-num">01</div>
+                    <div class="ri-title">Skills</div>
+                    <div class="ri-sub">Custom tools for your workflow</div>
+                </div>
+                <div class="roadmap-item reveal stagger-2">
+                    <div class="ri-num">02</div>
+                    <div class="ri-title">Cron Jobs</div>
+                    <div class="ri-sub">Scheduled background work</div>
+                </div>
+                <div class="roadmap-item reveal stagger-3">
+                    <div class="ri-num">03</div>
+                    <div class="ri-title">Work Pulse</div>
+                    <div class="ri-sub">Autonomous 15-min cycles</div>
+                </div>
+                <div class="roadmap-item reveal stagger-4">
+                    <div class="ri-num">04</div>
+                    <div class="ri-title">Team Knowledge</div>
+                    <div class="ri-sub">Shared context across agents</div>
+                </div>
+            </div>
+        </div>
+        <div class="slide-num">14 / 14</div>
+    </section>
+
+    <script>
+        /* ===========================================
+           SLIDE PRESENTATION CONTROLLER
+           Electric Studio — Your AI Teammate
+           =========================================== */
+        class SlidePresentation {
+            constructor() {
+                this.slides = Array.from(document.querySelectorAll('.slide'));
+                this.totalSlides = this.slides.length;
+                this.currentIndex = 0;
+                this.isScrolling = false;
+                this.scrollCooldown = 800;
+                this.touchStartY = 0;
+                this.touchStartX = 0;
+
+                this.progressBar = document.getElementById('progressBar');
+                this.navDotsContainer = document.getElementById('navDots');
+
+                this.init();
+            }
+
+            init() {
+                this.buildNavDots();
+                this.setupIntersectionObserver();
+                this.setupKeyboardNav();
+                this.setupWheelNav();
+                this.setupTouchNav();
+                this.activateSlide(0, false);
+            }
+
+            /* --- Build nav dots --- */
+            buildNavDots() {
+                this.slides.forEach((_, i) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'nav-dot';
+                    btn.setAttribute('aria-label', `Go to slide ${i + 1}`);
+                    btn.addEventListener('click', () => this.goTo(i));
+                    this.navDotsContainer.appendChild(btn);
+                });
+                this.dots = Array.from(this.navDotsContainer.querySelectorAll('.nav-dot'));
+            }
+
+            /* --- Intersection Observer: add .visible when slide enters viewport --- */
+            setupIntersectionObserver() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            const idx = this.slides.indexOf(entry.target);
+                            if (idx !== -1) {
+                                this.currentIndex = idx;
+                                this.updateUI();
+                            }
+                        }
+                    });
+                }, { threshold: 0.5 });
+
+                this.slides.forEach(slide => observer.observe(slide));
+            }
+
+            /* --- Keyboard: arrows, space, page keys --- */
+            setupKeyboardNav() {
+                document.addEventListener('keydown', (e) => {
+                    switch(e.key) {
+                        case 'ArrowDown':
+                        case 'ArrowRight':
+                        case ' ':
+                        case 'PageDown':
+                            e.preventDefault();
+                            this.next();
+                            break;
+                        case 'ArrowUp':
+                        case 'ArrowLeft':
+                        case 'PageUp':
+                            e.preventDefault();
+                            this.prev();
+                            break;
+                        case 'Home':
+                            e.preventDefault();
+                            this.goTo(0);
+                            break;
+                        case 'End':
+                            e.preventDefault();
+                            this.goTo(this.totalSlides - 1);
+                            break;
+                    }
+                });
+            }
+
+            /* --- Mouse wheel navigation with cooldown --- */
+            setupWheelNav() {
+                let lastWheel = 0;
+                document.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    const now = Date.now();
+                    if (now - lastWheel < this.scrollCooldown) return;
+                    lastWheel = now;
+                    if (e.deltaY > 0) this.next();
+                    else this.prev();
+                }, { passive: false });
+            }
+
+            /* --- Touch / swipe --- */
+            setupTouchNav() {
+                document.addEventListener('touchstart', (e) => {
+                    this.touchStartY = e.touches[0].clientY;
+                    this.touchStartX = e.touches[0].clientX;
+                }, { passive: true });
+
+                document.addEventListener('touchend', (e) => {
+                    const dy = this.touchStartY - e.changedTouches[0].clientY;
+                    const dx = this.touchStartX - e.changedTouches[0].clientX;
+                    if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 40) {
+                        if (dy > 0) this.next();
+                        else this.prev();
+                    }
+                }, { passive: true });
+            }
+
+            /* --- Navigate to specific slide --- */
+            goTo(index) {
+                if (index < 0 || index >= this.totalSlides) return;
+                this.slides[index].scrollIntoView({ behavior: 'smooth' });
+                this.currentIndex = index;
+                this.updateUI();
+            }
+
+            next() { this.goTo(this.currentIndex + 1); }
+            prev() { this.goTo(this.currentIndex - 1); }
+
+            /* --- Activate first slide visibility immediately --- */
+            activateSlide(index, animate) {
+                const slide = this.slides[index];
+                if (animate === false) {
+                    // Immediately visible without scroll
+                    setTimeout(() => slide.classList.add('visible'), 100);
+                }
+            }
+
+            /* --- Update progress bar + nav dots --- */
+            updateUI() {
+                const progress = ((this.currentIndex + 1) / this.totalSlides) * 100;
+                if (this.progressBar) this.progressBar.style.width = progress + '%';
+
+                if (this.dots) {
+                    this.dots.forEach((dot, i) => {
+                        dot.classList.toggle('active', i === this.currentIndex);
+                    });
+                }
+            }
+        }
+
+        // Boot the presentation
+        const pres = new SlidePresentation();
+    </script>
+
+</body>
+</html>

@@ -2,6 +2,8 @@
 
 A step-by-step guide to setting up a headless AI agent on a Mac Mini, based on a production setup that's been running since January 2026. Your agent will be reachable via Slack, Telegram, WhatsApp, and more, with scheduled automations, browser control, and MCP integrations.
 
+**Last updated:** March 17, 2026 — OpenClaw 2026.3.13. New sections: Model Management, Memory Search, Dashboard v2, Agent Control Protocol, Sandbox Containers, Backup & Recovery, Work Pulse pattern. See also: [team-agents](https://github.com/solo-founders/team-agents) for multi-agent team coordination.
+
 ```
 +---------------------------------------------------------------+
 |                         Mac Mini                              |
@@ -46,10 +48,16 @@ A step-by-step guide to setting up a headless AI agent on a Mac Mini, based on a
 12. [Skills Installation](#12-skills-installation)
 13. [Notification Hooks](#13-notification-hooks-mac-mini-edition)
 14. [Browser Automation](#14-browser-automation)
-15. [Device Pairing & Control UI](#15-device-pairing--control-ui)
-16. [Security Checklist](#16-security-checklist)
-17. [Known Issues & Workarounds](#17-known-issues--workarounds)
-18. [Quick Reference](#18-quick-reference)
+15. [Model Management & Fast Mode](#15-model-management--fast-mode) ✨ new
+16. [Memory Search](#16-memory-search) ✨ new
+17. [Dashboard & Control UI](#17-dashboard--control-ui)
+18. [Agent Control Protocol](#18-agent-control-protocol) ✨ new
+19. [Sandbox Containers](#19-sandbox-containers) ✨ new
+20. [Backup & Recovery](#20-backup--recovery) ✨ new
+21. [Work Pulse — Autonomous Work Cycles](#21-work-pulse--autonomous-work-cycles) ✨ new
+22. [Security Checklist](#22-security-checklist)
+23. [Known Issues & Workarounds](#23-known-issues--workarounds)
+24. [Quick Reference](#24-quick-reference)
 
 ---
 
@@ -664,14 +672,52 @@ Or configure directly in `~/.openclaw/cron/jobs.json`. Here's what a daily morni
 }
 ```
 
-### Useful Cron Job Ideas
+### Real-World Cron Job Examples
 
-| Job | Schedule | Channel | Description |
-|-----|----------|---------|-------------|
-| Morning briefing | `30 6 * * *` | Telegram | Calendar, email triage, daily quote |
-| RSS monitors | `45 11 * * *` | Telegram | Check specific blogs/feeds for new posts |
-| Database sync | `0 23 * * *` | — | Git push personal databases |
-| Weekly review | `0 18 * * 5` | Slack | Summarize the week's activity |
+| Job | Schedule | Description |
+|-----|----------|-------------|
+| Morning briefing | `30 6 * * *` | Calendar check, email triage, daily quote → Telegram |
+| RSS monitors | `45 11 * * *` | Watch blogs (Paul Graham, Sam Altman, etc.) for new posts |
+| Slack channel sync | `0 8-20/2 * * *` | Pull latest Slack channel history to a local log file |
+| Database sync | `0 23 * * *` | Git push personal JSON databases |
+| Mention monitor | `*/5 * * * *` | Check for unanswered Slack @mentions |
+| Work Pulse kickoff | `0 9 * * 1-5` | Start autonomous work cycle on weekdays |
+| Work Pulse | `5,20,35,50 9-16 * * 1-5` | Run work cycle every 15 min during the day |
+| End of Day | `0 17 * * 1-5` | Summarize the day's work, post to Slack |
+
+### Cron Commands Reference
+
+```bash
+openclaw cron list                      # List all jobs with status
+openclaw cron runs --limit 20           # Show recent run history
+openclaw cron status                    # Scheduler health
+openclaw cron run <job-id>              # Trigger a job immediately (debug)
+openclaw cron add --name "Daily Check" --schedule "0 9 * * *" --message "Run briefing"
+openclaw cron edit <job-id> --enabled true
+openclaw cron disable <job-id>
+openclaw cron rm <job-id>
+```
+
+### Job Types
+
+```json
+// Recurring cron job
+{
+  "id": "morning-briefing",
+  "name": "Morning Briefing",
+  "enabled": true,
+  "schedule": { "kind": "cron", "expr": "30 6 * * *", "tz": "America/Los_Angeles" },
+  "sessionTarget": "isolated",
+  "wakeMode": "next-heartbeat",
+  "payload": {
+    "kind": "agentTurn",
+    "message": "Run my morning briefing..."
+  }
+}
+```
+
+**`sessionTarget`**: `isolated` (clean session, no shared context) or `main` (uses your running session)
+**`wakeMode`**: `next-heartbeat` (waits for agent heartbeat) or `now` (fires immediately)
 
 ### Known Issue: One-Shot Jobs Are Broken
 
@@ -891,8 +937,37 @@ OpenClaw manages a dedicated Chromium instance with its own profile, cookies, an
 | Type | How It Works | Best For |
 |------|-------------|----------|
 | **OpenClaw-managed** (default) | Isolated Chromium instance managed by the gateway | Most use cases — OAuth, scraping, screenshots |
-| **Remote CDP** | Connect to an external browser via WebSocket (Browserless, Browserbase) | Cloud-hosted browsers, scaling, CI/CD |
-| **Chrome extension relay** | Automate your existing Chrome tabs | Reusing logged-in sessions from your real browser |
+| **`user` profile** | Attaches to your signed-in Mac Chrome via DevTools | Pages where you're already logged in (no re-auth) |
+| **`chrome-relay`** | Extension relay into live Chrome tabs | Reusing active browser sessions |
+| **Remote CDP** | Connect to an external browser via WebSocket | Cloud-hosted browsers, CI/CD |
+
+### Chrome DevTools Attach Mode (New in 2026.3.13)
+
+Connect to your real signed-in Chrome instead of a headless instance. Useful when a site's login is hard to automate or you need your actual session state.
+
+```bash
+# 1. Launch Chrome with remote debugging enabled
+/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome \
+  --remote-debugging-port=9222
+
+# 2. Open chrome://inspect/#remote-debugging to verify
+
+# 3. Use the 'user' profile in your agent session
+# In openclaw.json:
+{
+  "browser": {
+    "defaultProfile": "user"
+  }
+}
+```
+
+### Profile Management
+
+```bash
+openclaw browser profiles           # List all profiles
+openclaw browser create-profile --name work
+openclaw browser reset-profile --name openclaw  # Reset to clean state
+```
 
 ### Key Capabilities
 
@@ -928,7 +1003,177 @@ Full browser tool documentation: [docs.openclaw.ai/tools/browser](https://docs.o
 
 ---
 
-## 15. Device Pairing & Control UI
+## 15. Model Management & Fast Mode
+
+Configure which models your agent uses, set up aliases, and enable fast mode for quicker responses.
+
+### Model Aliases
+
+Define short names for models in `openclaw.json`:
+
+```json
+{
+  "auth": {
+    "models": {
+      "aliases": {
+        "opus": "anthropic/claude-opus-4-5",
+        "opus4.6": "anthropic/claude-opus-4-6",
+        "sonnet": "anthropic/claude-sonnet-4-6"
+      }
+    }
+  }
+}
+```
+
+Use aliases when sending messages: `openclaw agent --model opus4.6 --message "..."`
+
+### Fast Mode
+
+Fast mode reduces latency at the cost of some throughput — good for quick back-and-forth.
+
+```bash
+openclaw models list                    # See available models
+openclaw models set primary --model opus4.6
+openclaw models aliases                 # List configured aliases
+openclaw models scan --provider openrouter  # Discover available free models
+```
+
+### Setting the Primary Model
+
+```json
+{
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "anthropic/claude-opus-4-6"
+      }
+    }
+  }
+}
+```
+
+---
+
+## 16. Memory Search
+
+OpenClaw indexes your workspace memory files for semantic search. Find anything your agent has written down.
+
+```bash
+openclaw memory status                  # Check indexing status
+openclaw memory status --deep           # Probe embedding provider health
+openclaw memory search "meeting notes"  # Semantic search
+openclaw memory search --query "deployment" --max-results 20
+openclaw memory index --force           # Reindex all memory files
+```
+
+Memory files indexed: everything in `~/your-workspace/memory/YYYY-MM-DD.md` and `MEMORY.md`.
+
+---
+
+## 17. Dashboard & Control UI
+
+The web dashboard gives you a visual interface to monitor and control your agent.
+
+```bash
+openclaw dashboard                      # Open web UI in browser
+```
+
+### What's in the Dashboard (v2, 2026.3.13)
+
+| View | Purpose |
+|------|---------|
+| **Overview** | Gateway health, active sessions, recent activity |
+| **Chat** | Send messages to your agent from the browser |
+| **Config** | View and edit `openclaw.json` visually |
+| **Agent** | Per-agent settings, model selection |
+| **Session** | Active session transcripts |
+
+Command palette available via `Cmd+K`. Mobile-responsive with bottom tab navigation.
+
+### Device Pairing
+
+Each device gets its own auth token (new in 2026.3.12: short-lived bootstrap tokens for security):
+
+```bash
+openclaw pairing                        # Start pairing flow
+openclaw pairing approve <channel> <code>
+```
+
+---
+
+## 18. Agent Control Protocol
+
+ACP lets you send messages directly to agent sessions via the gateway — useful for scripting, automation, and inter-agent communication.
+
+```bash
+openclaw acp client                     # Interactive CLI
+openclaw acp --session main:main --message "Run daily check"
+openclaw acp --provenance meta          # Include request metadata
+```
+
+Useful for triggering agent work from scripts or other processes without going through a messaging channel.
+
+---
+
+## 19. Sandbox Containers
+
+Docker-based per-session isolation. Each agent session can run in its own container with controlled tool access.
+
+```bash
+openclaw sandbox list                   # List active sandboxes
+openclaw sandbox list --browser         # Show browser sandboxes
+openclaw sandbox recreate --all         # Recreate all containers
+openclaw sandbox recreate --session main
+openclaw sandbox explain                # Show effective sandbox policy
+```
+
+Requires Docker to be installed and running.
+
+---
+
+## 20. Backup & Recovery
+
+Back up your entire OpenClaw setup: config, credentials, sessions, and workspace state.
+
+```bash
+openclaw backup create --output ~/openclaw-backup-$(date +%Y%m%d).tar.gz
+openclaw backup verify ~/openclaw-backup.tar.gz
+```
+
+**What's included:** `~/.openclaw/openclaw.json`, credentials, session history, device identity, cron jobs, hook configurations.
+
+**What's NOT included:** Your workspace files (those are in git), skills, and browser profile data.
+
+Recommended: schedule a weekly backup cron job.
+
+---
+
+## 21. Work Pulse — Autonomous Work Cycles
+
+The Work Pulse pattern lets your agent work autonomously in 15-minute cycles throughout the day — checking its own progress, spawning sub-tasks, and reporting results without constant supervision.
+
+**How it works:**
+1. **Morning Kickoff** (9am) — Sets the day's goals and spawns initial work
+2. **Work Pulse** (every 15 min) — Harvests completed work, assesses progress, spawns next tasks, posts a Slack checkpoint
+3. **End of Day** (5pm) — Summarizes the day, posts report
+
+**Key insight:** The agent can't track time itself — cron handles timing, the agent handles work. A lock file prevents overlapping pulses.
+
+**Setup:** See the `solo-founders/team-agents` repo for the full Work Pulse protocol, state machine definition, and guard scripts. It's documented there as a team pattern rather than here.
+
+```bash
+# Example cron config for Work Pulse
+# Morning kickoff
+# 0 9 * * 1-5  → openclaw cron job → "Morning kickoff: read goals, plan the day, spawn work"
+# Every 15 min
+# 5,20,35,50 9-16 * * 1-5 → "Work pulse: harvest results, spawn next tasks, post checkpoint"
+# End of day
+# 0 17 * * 1-5 → "End of day: summarize, create daily log, post report"
+```
+
+---
+
+## 22. Security Checklist
 
 OpenClaw supports multiple paired devices, each with their own auth token.
 
@@ -955,7 +1200,7 @@ openclaw pairing
 
 ---
 
-## 16. Security Checklist
+## 22. Security Checklist
 
 | Setting | Recommended Value | Why |
 |---------|-------------------|-----|
@@ -967,6 +1212,13 @@ openclaw pairing
 | MEMORY.md loading | Main session only | Personal data doesn't leak to group chats |
 | Workspace permissions | Explicit allowlist | Only approved commands run |
 | Credentials | In `~/.openclaw/credentials/` | Not in workspace repo |
+
+### Device Pairing Security (New in 2026.3.12)
+
+Unknown senders now get a **short-lived bootstrap token** instead of sharing gateway credentials. This means:
+- New contacts trying to DM your agent get a one-time pairing code
+- The code expires — no persistent credential exposure
+- You approve pairing explicitly: `openclaw pairing approve <channel> <code>`
 
 ### Token Generation
 
@@ -988,7 +1240,7 @@ Never commit these to your workspace repo:
 
 ---
 
-## 17. Known Issues & Workarounds
+## 23. Known Issues & Workarounds
 
 | Issue | Impact | Workaround | Status |
 |-------|--------|------------|--------|
@@ -1118,7 +1370,7 @@ To let your agent see all messages (not just @mentions), set `requireMention: fa
 
 ---
 
-## 18. Quick Reference
+## 24. Quick Reference
 
 ### File Paths
 
@@ -1141,16 +1393,48 @@ To let your agent see all messages (not just @mentions), set `requireMention: fa
 ### Common Commands
 
 ```bash
-# OpenClaw
+# OpenClaw — Gateway
 openclaw status                    # Channel health & recent activity
 openclaw health                    # Gateway health check
 openclaw gateway                   # Start gateway (foreground)
 openclaw gateway --force           # Kill & restart gateway
 openclaw gateway restart           # Graceful restart
 openclaw logs                      # View gateway logs
-openclaw cron                      # Manage cron jobs
 openclaw doctor                    # Diagnose issues
+openclaw doctor --fix              # Auto-fix common configuration issues
 openclaw dashboard                 # Open web control UI
+
+# OpenClaw — Cron
+openclaw cron list                 # List all jobs
+openclaw cron runs --limit 20      # Run history
+openclaw cron run <id>             # Trigger job now (debug)
+openclaw cron status               # Scheduler health
+
+# OpenClaw — Browser
+openclaw browser profiles          # List browser profiles
+openclaw browser start             # Start headless browser
+openclaw browser screenshot --full-page
+
+# OpenClaw — Models
+openclaw models list               # Available models
+openclaw models aliases            # Configured aliases
+openclaw models set primary --model opus4.6
+
+# OpenClaw — Memory
+openclaw memory search "query"     # Semantic search
+openclaw memory status --deep      # Indexing health
+openclaw memory index --force      # Reindex
+
+# OpenClaw — Sandbox & Backup
+openclaw sandbox list              # Active containers
+openclaw sandbox explain           # Effective policy
+openclaw backup create --output ~/backup.tar.gz
+
+# OpenClaw — ACP
+openclaw acp client                # Interactive agent CLI
+openclaw acp --session main:main --message "test"
+
+# Misc
 openclaw plugins list              # List installed plugins
 openclaw skills list               # List available skills
 openclaw config get channels       # View channel config
