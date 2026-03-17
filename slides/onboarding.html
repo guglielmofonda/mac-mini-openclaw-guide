@@ -716,33 +716,52 @@
             <div style="margin-top: clamp(0.8rem,2vh,1.8rem);">
                 <div class="code-label reveal">runs automatically after install, or manually:</div>
                 <div class="code-block-lg reveal">
-                    <span class="cmd">openclaw onboard --install-daemon</span>
+                    <span class="cmd">openclaw onboard</span>
+                </div>
+                <div class="code-label reveal" style="margin-top:clamp(0.6rem,1.5vh,1.2rem);">choose your path</div>
+                <div style="display:flex; gap:0.5rem; margin-top:0.3rem;" class="reveal">
+                    <div class="code-block" style="flex:1; text-align:center; color:var(--accent-cyan); font-weight:600;">QuickStart</div>
+                    <div class="code-block" style="flex:1; text-align:center; color:rgba(255,255,255,0.5);">Advanced</div>
                 </div>
             </div>
         </div>
         <div class="split-aside">
-            <div style="font-size: var(--small-size); font-weight:700; color:rgba(255,255,255,0.5); letter-spacing:0.12em; text-transform:uppercase; font-family:var(--font-mono); margin-bottom:0.5rem; position:relative; z-index:1;" class="reveal">It will ask for</div>
-            <div class="aside-item reveal stagger-1">API key</div>
-            <div class="aside-item reveal stagger-2">Gateway port</div>
-            <div class="aside-item reveal stagger-3">Channels</div>
-            <div class="aside-item highlight reveal stagger-4">Skills</div>
+            <div style="font-size: var(--small-size); font-weight:700; color:rgba(255,255,255,0.5); letter-spacing:0.12em; text-transform:uppercase; font-family:var(--font-mono); margin-bottom:0.5rem; position:relative; z-index:1;" class="reveal">7 steps</div>
+            <div class="aside-item reveal stagger-1">1 · Model &amp; Auth</div>
+            <div class="aside-item reveal stagger-2">2 · Workspace</div>
+            <div class="aside-item reveal stagger-3">3 · Gateway</div>
+            <div class="aside-item reveal stagger-4">4 · Channels</div>
+            <div class="aside-item reveal stagger-4">5 · Daemon</div>
+            <div class="aside-item reveal stagger-4">6 · Health check</div>
+            <div class="aside-item highlight reveal stagger-4">7 · Skills</div>
         </div>
         <div class="slide-num">06 / 14</div>
     </section>
 
     <!-- ===========================================
-         SLIDE 7: STEP 4 — MEET YOUR CLAW
+         SLIDE 7: STEP 4 — VERIFY + FIRST BOOT
          =========================================== -->
-    <section class="slide slide-content-panel" id="slide-7" aria-label="Step 4: Meet your Claw">
+    <section class="slide slide-split" id="slide-7" aria-label="Step 4: Verify and meet your Claw">
         <div class="accent-bar"></div>
-        <div class="inner">
+        <div class="split-main">
             <div class="section-label reveal">Step 04</div>
-            <h2 class="slide-h2 reveal">Meet Your Claw</h2>
-            <ul class="clean-list" style="margin-top: clamp(0.6rem,1.5vh,1.5rem);">
-                <li class="reveal stagger-1">First boot runs <strong>BOOTSTRAP.md</strong></li>
-                <li class="reveal stagger-2">Have a conversation — pick a <strong>name, personality, emoji</strong></li>
-                <li class="reveal stagger-3">Your agent <strong>remembers everything</strong> from day one</li>
-            </ul>
+            <h2 class="slide-h2 reveal">Verify &amp; First Boot</h2>
+            <div style="margin-top: clamp(0.8rem,2vh,1.8rem); display:flex; flex-direction:column; gap:0.5rem;">
+                <div class="code-label reveal">check gateway is running</div>
+                <div class="code-block-lg reveal">
+                    <span class="cmd">openclaw gateway status</span>
+                </div>
+                <div class="code-label reveal" style="margin-top:0.3rem;">open the dashboard</div>
+                <div class="code-block-lg reveal">
+                    <span class="cmd">openclaw dashboard</span>
+                </div>
+            </div>
+        </div>
+        <div class="split-aside">
+            <div style="font-size: var(--small-size); font-weight:700; color:rgba(255,255,255,0.5); letter-spacing:0.12em; text-transform:uppercase; font-family:var(--font-mono); margin-bottom:0.5rem; position:relative; z-index:1;" class="reveal">Meet your Claw</div>
+            <div class="aside-item reveal stagger-1">First boot runs <strong>BOOTSTRAP.md</strong></div>
+            <div class="aside-item reveal stagger-2">Pick a <strong>name, personality, emoji</strong></div>
+            <div class="aside-item highlight reveal stagger-3">Remembers everything from day one</div>
         </div>
         <div class="slide-num">07 / 14</div>
     </section>
